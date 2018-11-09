@@ -6,6 +6,7 @@ import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PathEffect;
+import android.util.Log;
 
 import com.github.mikephil.charting.animation.ChartAnimator;
 import com.github.mikephil.charting.data.Entry;
@@ -142,7 +143,7 @@ public class TimeLineChartRenderer extends LineChartRenderer {
             e1 = dataSet.getEntryForIndex(mXBounds.min);
 
             if (e1 != null) {
-
+                Log.e("yangxiong", "mXBounds.range + mXBounds.min: "+ mXBounds.range + mXBounds.min);
                 int j = 0;
                 for (int x = mXBounds.min; x <= mXBounds.range + mXBounds.min; x++) {
 
@@ -185,29 +186,38 @@ public class TimeLineChartRenderer extends LineChartRenderer {
             }
         }
 
-        if (dataSet.isDrawCircleDashMarkerEnabled()) {//这个地方做了限制，一般是不会绘制的
-            drawCircleDashMarker(canvas, dataSet, entryCount);//画虚线圆点和MarkerView
-        }
+       // if (dataSet.isDrawCircleDashMarkerEnabled()) {//这个地方做了限制，一般是不会绘制的
+            drawCircleDashMarker(canvas, dataSet, entryCount);//画虚线圆点和MarkerView // TODO: 2018/11/9 黄色线 平均值？
+       // }
 
         mRenderPaint.setPathEffect(null);
     }
 
-    public void drawCircleDashMarker(Canvas canvas, ILineDataSet dataSet, int count) {
+    int pathyx = 0;
 
-        //画虚线圆点和MarkerView
+    public void drawCircleDashMarker(Canvas canvas, ILineDataSet dataSet, int count) {
+        Log.e("yangxiong", "dataSet: " +  dataSet.getEntryCount());
+        Log.e("yangxiong", "count: " +  count);
+        // TODO: 2018/11/9  画虚线圆点和MarkerView
         PathEffect effects = new DashPathEffect(new float[]{5, 5, 5, 5}, 1);
-        Path path = new Path();
+        Path path = new Path();// TODO: 2018/11/9 画水平线
+        Path pathY = new Path();// TODO: 2018/11/9 画竖直线
         // 应为这里会复用之前的mLineBuffer，在总长度不变的情况下，取一般就是之前的位置，mXBounds.range + mXBounds.min 是最新的K线的变动范围
         int pointOffset = (mXBounds.range + mXBounds.min + 1) * 4;
+        Log.e("yangxiong", "pointOffset: " +  pointOffset);
         if (dataSet.getEntryCount() != 0) {
             //画虚线参数设置
-            path.moveTo(mLineBuffer[pointOffset - 2], mLineBuffer[pointOffset - 1]);
-            path.lineTo(mViewPortHandler.contentRight(), mLineBuffer[pointOffset - 1]);
+//            path.moveTo(mLineBuffer[pointOffset - 2] , mLineBuffer[pointOffset - 1]);
+            path.moveTo(0 , mLineBuffer[pointOffset - 1]); // TODO: 2018/11/9 虚线的起始x,y坐标点
+            path.lineTo(mViewPortHandler.contentRight(), mLineBuffer[pointOffset - 1]);// TODO: 2018/11/9 从当前点绘制一条线段到指定点
+
+            pathY.moveTo(mLineBuffer[pointOffset - 2], 0);
+            pathY.lineTo(mLineBuffer[pointOffset - 2],800);
             mRenderPaint.setPathEffect(effects);
 
             Entry e = dataSet.getEntryForIndex(count - 1);//Utils.convertDpToPixel(35)
             mRenderPaint.setTextSize(Utils.convertDpToPixel(10));
-            String text = NumberUtils.keepPrecisionR(e.getY(), dataSet.getPrecision());
+            String text = NumberUtils.keepPrecisionR(e.getY(), dataSet.getPrecision());// TODO: 2018/11/9 当前纵坐标的值
             int width = Utils.calcTextWidth(mRenderPaint, text);
             int height = Utils.calcTextHeight(mRenderPaint, text);
             float rectLeft = mViewPortHandler.contentRight() - width - Utils.convertDpToPixel(4);
@@ -227,6 +237,7 @@ public class TimeLineChartRenderer extends LineChartRenderer {
                     canvas.drawPath(pathS, mRenderPaint);
                     mRenderPaint.setColor(Color.WHITE);
                     canvas.drawText(text, rectLeft + Utils.convertDpToPixel(2), y - Utils.convertDpToPixel(10), mRenderPaint);
+                    Log.e("yangxiong", "mLineBuffer[pointOffset - 2]:1  " +  mLineBuffer[pointOffset - 2]);
                 } else {
                     canvas.drawRect(rectLeft, y + Utils.convertDpToPixel(6), mViewPortHandler.contentRight(), y + Utils.convertDpToPixel(22), mRenderPaint);
                     Path pathS = new Path();
@@ -237,9 +248,11 @@ public class TimeLineChartRenderer extends LineChartRenderer {
                     canvas.drawPath(pathS, mRenderPaint);
                     mRenderPaint.setColor(Color.WHITE);
                     canvas.drawText(text, rectLeft + Utils.convertDpToPixel(2), y + Utils.convertDpToPixel(10) + height, mRenderPaint);
+                    Log.e("yangxiong", "mLineBuffer[pointOffset - 2]:2  " +  mLineBuffer[pointOffset - 2]);
                 }
             } else {
                 canvas.drawPath(path, mRenderPaint);
+                canvas.drawPath(pathY, mRenderPaint);
                 mRenderPaint.setStyle(Paint.Style.FILL);
                 canvas.drawRect(rectLeft, mLineBuffer[pointOffset - 1] - Utils.convertDpToPixel(8), mViewPortHandler.contentRight(), mLineBuffer[pointOffset - 1] + Utils.convertDpToPixel(8), mRenderPaint);
                 mRenderPaint.setColor(Color.WHITE);

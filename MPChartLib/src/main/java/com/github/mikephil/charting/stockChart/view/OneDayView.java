@@ -332,7 +332,7 @@ public class OneDayView extends BaseView {
         ArrayList<Entry> lineCJEntries = new ArrayList<>();
         ArrayList<Entry> lineJJEntries = new ArrayList<>();
         ArrayList<BarEntry> barEntries = new ArrayList<>();
-        for (int i = 0, j = 0; i < 10; i++, j++) {
+        for (int i = 0, j = 0; i < 240; i++, j++) {
             TimeDataModel t = mData.getDatas().get(j);
             if (t == null) {
                 lineCJEntries.add(new Entry(i, i, Float.NaN));
@@ -394,18 +394,22 @@ public class OneDayView extends BaseView {
         lineChart.moveViewToX(mData.getDatas().size() - 1);
         barChart.moveViewToX(mData.getDatas().size() - 1);
         lineChart.invalidate();
-        barChart.animateY(1000);
-         i = 10;
+        barChart.animateY(2000);
+        lineChart.animateY(2000);
+         i = 240;
 
+
+
+// TODO: 2018/11/9 动态添加数据
         postDelayed(new Runnable( ) {
             @Override
             public void run() {
-                dynamicsAddOne(mData.getDatas( ).get(i++),i);
+                dynamicsAddOne(mData.getDatas( ).get(i++), i);
                 postDelayed(this,1000);
             }
         },1000);
     }
-int i ;
+    int i ;
     public void dynamicsAddOne(TimeDataModel timeDatamodel, int length) {
         int index = length - 1;
         LineData lineData = lineChart.getData();

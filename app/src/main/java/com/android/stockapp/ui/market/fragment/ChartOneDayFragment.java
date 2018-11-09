@@ -18,6 +18,8 @@ import com.github.mikephil.charting.stockChart.view.OneDayView;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Random;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
@@ -62,6 +64,12 @@ public class ChartOneDayFragment extends BaseFragment {
 
         //上证指数代码000001.IDX.SH
         kTimeData.parseTimeData(object,"000001.IDX.SH");
+        for (int i = 0; i < 10000; i++) {
+
+            int random = new Random( ).nextInt(kTimeData.getDatas( ).size( ));
+            kTimeData.getDatas().add(kTimeData.getDatas( ).get(random));
+
+        }
         chart.setDataToChart(kTimeData);
 
         //非横屏页单击转横屏页
