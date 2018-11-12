@@ -332,7 +332,7 @@ public class OneDayView extends BaseView {
         ArrayList<Entry> lineCJEntries = new ArrayList<>();
         ArrayList<Entry> lineJJEntries = new ArrayList<>();
         ArrayList<BarEntry> barEntries = new ArrayList<>();
-        for (int i = 0, j = 0; i < 240; i++, j++) {
+        for (int i = 0, j = 0; i < 200; i++, j++) {
             TimeDataModel t = mData.getDatas().get(j);
             if (t == null) {
                 lineCJEntries.add(new Entry(i, i, Float.NaN));
@@ -349,6 +349,7 @@ public class OneDayView extends BaseView {
         d1.setDrawCircleDashMarker(landscape);
         d2.setDrawCircleDashMarker(false);
         d1.setDrawValues(false);
+        d1.setDrawCircleDashMarker(true);
         d2.setDrawValues(false);
         d1.setLineWidth(0.7f);
         d2.setLineWidth(0.7f);
@@ -364,7 +365,7 @@ public class OneDayView extends BaseView {
         d1.setAxisDependency(YAxis.AxisDependency.LEFT);
         d1.setPrecision(precision);
         d1.setTimeDayType(1);//设置分时图类型
-        d2.setTimeDayType(1);
+        d2.setTimeDayType(2);
         ArrayList<ILineDataSet> sets = new ArrayList<>();
         sets.add(d1);
         sets.add(d2);
@@ -390,13 +391,13 @@ public class OneDayView extends BaseView {
         xAxisBar.setLabelCount(getXLabels().size(), false);
         lineChart.setVisibleXRange(maxCount, maxCount);
         barChart.setVisibleXRange(maxCount, maxCount);
-
+        lineChart.setDragOffsetX(200);
+        barChart.setDragOffsetX(200);
         lineChart.moveViewToX(mData.getDatas().size() - 1);
         barChart.moveViewToX(mData.getDatas().size() - 1);
         lineChart.invalidate();
         barChart.animateY(2000);
-        lineChart.animateY(2000);
-         i = 240;
+         i = 200;
 
 
 
@@ -404,7 +405,8 @@ public class OneDayView extends BaseView {
         postDelayed(new Runnable( ) {
             @Override
             public void run() {
-                dynamicsAddOne(mData.getDatas( ).get(i++), i);
+                int count =i++;
+                dynamicsAddOne(mData.getDatas( ).get(count), count);
                 postDelayed(this,1000);
             }
         },1000);

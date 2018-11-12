@@ -12,9 +12,9 @@ import com.github.mikephil.charting.animation.ChartAnimator;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.interfaces.dataprovider.LineDataProvider;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+import com.github.mikephil.charting.renderer.LineChartRenderer;
 import com.github.mikephil.charting.stockChart.event.BaseEvent;
 import com.github.mikephil.charting.stockChart.model.CirclePositionTime;
-import com.github.mikephil.charting.renderer.LineChartRenderer;
 import com.github.mikephil.charting.utils.NumberUtils;
 import com.github.mikephil.charting.utils.Transformer;
 import com.github.mikephil.charting.utils.Utils;
@@ -30,8 +30,11 @@ import org.greenrobot.eventbus.EventBus;
 public class TimeLineChartRenderer extends LineChartRenderer {
 
 
+    private LineDataProvider chart;
+
     public TimeLineChartRenderer(LineDataProvider chart, ChartAnimator animator, ViewPortHandler viewPortHandler) {
         super(chart, animator, viewPortHandler);
+        this.chart = chart;
     }
 
     /**
@@ -143,7 +146,6 @@ public class TimeLineChartRenderer extends LineChartRenderer {
             e1 = dataSet.getEntryForIndex(mXBounds.min);
 
             if (e1 != null) {
-                Log.e("yangxiong", "mXBounds.range + mXBounds.min: "+ mXBounds.range + mXBounds.min);
                 int j = 0;
                 for (int x = mXBounds.min; x <= mXBounds.range + mXBounds.min; x++) {
 
@@ -153,41 +155,56 @@ public class TimeLineChartRenderer extends LineChartRenderer {
                     if (e1 == null || e2 == null) {
                         continue;
                     }
-
                     mLineBuffer[j++] = e1.getX() + offSet;
                     mLineBuffer[j++] = e1.getY() * phaseY;
+                   // Log.e("yangxiong", "i->" + e2.getX() + offSet +"     lb->"+e2.getY() * phaseY);
 
-                    if (isDrawSteppedEnabled) {
-                        mLineBuffer[j++] = e2.getX() + offSet;
-                        mLineBuffer[j++] = e1.getY() * phaseY;
-                        mLineBuffer[j++] = e2.getX() + offSet;
-                        mLineBuffer[j++] = e1.getY() * phaseY;
-                    }
-                    //这些点与点之间不连接，用于五日分时
-                    if (dataSet.getTimeDayType() == 5 && dataSet.getXLabels().indexOfKey(x == 0 ? 0 : (x - 1)) > 0) {
-                        mLineBuffer[j++] = e1.getX() + offSet;
-                        mLineBuffer[j++] = e1.getY() * phaseY;
-                    } else {
                         mLineBuffer[j++] = e2.getX() + offSet;
                         mLineBuffer[j++] = e2.getY() * phaseY;
-                    }
-                }
 
+                    // Log.e("yangxiong", "i->" + e2.getX() + offSet +"     lb->"+e2.getY() * phaseY);
+
+                }
                 if (j > 0) {
                     trans.pointValuesToPixel(mLineBuffer);
 
-                    final int size = Math.max((mXBounds.range + 1) * pointsPerEntryPair, pointsPerEntryPair) * 2;
+                    final int size = Math.max((mXBounds.range + 1) * pointsPerEntryPair, pointsPerEntryPair)*2 ;
 
                     mRenderPaint.setColor(dataSet.getColor());
                     int max = mXBounds.range + mXBounds.min;
 //                    Log.e("内容",j+" "+mLineBuffer.length+" "+max);
                     canvas.drawLines(mLineBuffer, 0, size, mRenderPaint);
+
+                    Entry e = dataSet.getEntryForIndex(entryCount - 1);
+                    String text = NumberUtils.keepPrecisionR(e.getY(), dataSet.getPrecision());// TODO: 2018/11/9 当前纵坐标的值
+                    int width = Utils.calcTextWidth(mRenderPaint, text);
+                    canvas.drawLine(mLineBuffer[j - 2],mLineBuffer[j-1],1920,mLineBuffer[j-1],mRenderPaint);
+                    float rectLeft = mViewPortHandler.contentRight() - width - Utils.convertDpToPixel(4);
+                    //mRenderPaint.setStyle(Paint.Style.FILL);
+                   // canvas.drawRect(rectLeft, mLineBuffer[j - 1] - Utils.convertDpToPixel(8), mViewPortHandler.contentRight(), mLineBuffer[j - 1] + Utils.convertDpToPixel(8), mRenderPaint);
+                    mRenderPaint.setColor(dataSet.getColor());
+                    mRenderPaint.setTextSize(20);
+                    canvas.drawText(text, rectLeft + Utils.convertDpToPixel(2), mLineBuffer[j - 1] + Utils.convertDpToPixel(3), mRenderPaint);
+                    canvas.drawPoint(mLineBuffer[j - 2], mLineBuffer[j - 1],mRenderPaint);
+                       // postPosition(dataSet, mLineBuffer[j - 2], mLineBuffer[j - 1]);
+                    Path path = new Path();
+                    mRenderPaint.setStyle(Paint.Style.FILL);
+
+                    if (dataSet.isDrawCircleDashMarkerEnabled()) {
+
+                        canvas.drawLine(mLineBuffer[j-2],0,mLineBuffer[j-2],1080,mRenderPaint);
+                        canvas.drawText(j+"", mLineBuffer[j-2],50, mRenderPaint);
+                    }else {
+                        path.addCircle(mLineBuffer[j - 2], mLineBuffer[j - 1], 10, Path.Direction.CCW);
+                        canvas.drawPath(path, mRenderPaint);
+                    }
+                    postPosition(dataSet, mLineBuffer[j - 2], mLineBuffer[j - 1]);
                 }
             }
         }
 
        // if (dataSet.isDrawCircleDashMarkerEnabled()) {//这个地方做了限制，一般是不会绘制的
-            drawCircleDashMarker(canvas, dataSet, entryCount);//画虚线圆点和MarkerView // TODO: 2018/11/9 黄色线 平均值？
+           //drawCircleDashMarker(canvas, dataSet, entryCount);//画虚线圆点和MarkerView // TODO: 2018/11/9 黄色线 平均值？
        // }
 
         mRenderPaint.setPathEffect(null);
